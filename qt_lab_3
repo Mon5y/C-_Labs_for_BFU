@@ -1,0 +1,74 @@
+#include <QApplication>
+#include <QWidget>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QMessageBox>
+#include <cmath>
+
+class ShapeOperation
+{
+public:
+
+    float calculateSurfaceArea(float diameter) {
+        return M_PI * std::pow(diameter, 2);
+    }
+
+    float calculateVolume(float diameter) {
+        return (M_PI * std::pow(diameter, 3)) / 6.0f;
+    }
+};
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+
+    QWidget widget;
+    widget.setWindowTitle("Калькулятор шара");
+    widget.setMinimumSize(300, 200);
+
+    QVBoxLayout *layout = new QVBoxLayout(&widget);
+
+    QLabel *label = new QLabel("Введите диаметр:", &widget);
+    QLineEdit *inputDiameter = new QLineEdit(&widget);
+    inputDiameter->setPlaceholderText("Введите диаметр: например: 10.5");
+
+    QPushButton *btnArea = new QPushButton("Рассчитать площадь", &widget);
+    QPushButton *btnVolume = new QPushButton("Рассчитать объем", &widget);
+
+    layout->addWidget(label);
+    layout->addWidget(inputDiameter);
+    layout->addWidget(btnArea);
+    layout->addWidget(btnVolume);
+
+    ShapeOperation shape;
+    auto getDiameter = [inputDiameter]() -> float {
+        bool ok;
+        float d = inputDiameter->text().toFloat(&ok);
+        if (!ok || d < 0) {
+            QMessageBox::warning(nullptr, "Ошибка", "Введите корректное числовое значение!");
+            return -1.0f;
+        }
+        return d;
+    };
+
+    QObject::connect(btnArea, &QPushButton::clicked, [&]() {
+        float d = getDiameter();
+        if (d >= 0) {
+            QString res = "Площадь: " + QString::number(shape.calculateSurfaceArea(d), 'f', 2);
+            QMessageBox::information(nullptr, "Результат", res);
+        }
+    });
+
+    QObject::connect(btnVolume, &QPushButton::clicked, [&]() {
+        float d = getDiameter();
+        if (d >= 0) {
+            QString res = "Объем: " + QString::number(shape.calculateVolume(d), 'f', 2);
+            QMessageBox::information(nullptr, "Результат", res);
+        }
+    });
+
+    widget.show();
+    return app.exec();
+}
